@@ -254,37 +254,6 @@
 
   showQuestion();
 
-  // --- CSGO Goethe Special Edition Kiste ---
-  const caseBtn = document.getElementById("caseBtn");
-  const caseResult = document.getElementById("caseResult");
-
-  // Waffenliste inkl. CSGO echte spezielle Waffen
-  const weapons = [
-    // Goethe Special Edition Messer
-    "Goethe-Säbel",
-    "Goethe-Degen",
-    "Goethe-Langschwert",
-    "Goethe-Krummsäbel",
-    "Goethe-Dolch",
-    // CSGO Special Edition Waffen (bekannte Skins/Messer)
-    "Karambit | Fade",
-    "M9 Bayonet | Doppler",
-    "AWP | Dragon Lore",
-    "AK-47 | Fire Serpent",
-    "Desert Eagle | Blaze",
-    "Butterfly Knife | Crimson Web",
-    "StatTrak™ Glock-18 | Fade",
-    "USP-S | Kill Confirmed",
-    "M4A4 | Howl",
-    "P90 | Death by Kitty"
-  ];
-
-  caseBtn.onclick = () => {
-    const randomIndex = Math.floor(Math.random() * weapons.length);
-    const item = weapons[randomIndex];
-    caseResult.textContent = `Du hast gezogen: ${item}`;
-  };
-
   // --- Minispiel: Klick den Goethe Kopf so oft wie möglich in 10 Sekunden ---
   const startGameBtn = document.getElementById("startGameBtn");
   const miniGameTimerEl = document.getElementById("miniGameTimer");
