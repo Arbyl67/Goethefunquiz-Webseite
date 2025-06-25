@@ -124,34 +124,53 @@
     // Glücksrad
     const canvas = document.getElementById("wheelCanvas");
     const ctx = canvas.getContext("2d");
-    const segments = [
-      "Goethe-Goldmünze", "Faust-Maske", "Schiller-Buch",
-      "Weimar-Reise", "Gedichtband", "Geheimer Brief",
-      "Federhalter", "Nichts", "Tinte der Wahrheit", "Licht-Essenz"
-    ];
-    let angle = 0;
-    let spinning = false;
 
-    function drawWheel() {
-      const centerX = 150, centerY = 150;
-      const radius = 140;
-      const arcSize = (2 * Math.PI) / segments.length;
+    // Optionen + Wahrscheinlichkeiten
+    const options = [
+      { label: "Geheime Erkenntnis (5%)", weight: 5 },
+      { label: "Goethes Feder", weight: 15 },
+      { label: "Tintenfass", weight: 15 },
+      { label: "Lesebrille", weight: 15 },
+      { label: "Reisejournal", weight: 15 },
+      { label: "Gedichtsammlung", weight: 15 },
+      { label: "Brief an Schiller", weight: 15 },
+      { label: "Leerer Zettel", weight: 5 }
+    ];
+
+    const totalWeight = options.reduce((acc, o) => acc + o.weight, 0);
+
+    function pickWeighted() {
+      const r = Math.random() * totalWeight;
+      let sum = 0;
+      for (let i = 0; i < options.length; i++) {
+        sum += options[i].weight;
+        if (r < sum) return i;
+      }
+      return options.length - 1;
+    }
+
+    function drawWheel(angle = 0) {
+      const centerX = 150, centerY = 150, radius = 140;
+      const total = options.length;
+      const arc = (2 * Math.PI) / total;
       ctx.clearRect(0, 0, 300, 300);
-      for (let i = 0; i < segments.length; i++) {
+      for (let i = 0; i < total; i++) {
         ctx.beginPath();
         ctx.fillStyle = i % 2 === 0 ? "#ffb347" : "#ffc0cb";
         ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, arcSize * i + angle, arcSize * (i + 1) + angle);
+        ctx.arc(centerX, centerY, radius, angle + arc * i, angle + arc * (i + 1));
         ctx.lineTo(centerX, centerY);
         ctx.fill();
+
         ctx.save();
         ctx.translate(centerX, centerY);
-        ctx.rotate(arcSize * i + arcSize / 2 + angle);
-        ctx.fillStyle = "#000";
+        ctx.rotate(angle + arc * i + arc / 2);
+        ctx.fillStyle = "black";
         ctx.font = "12px sans-serif";
-        ctx.fillText(segments[i], 60, 0);
+        ctx.fillText(options[i].label, 60, 0);
         ctx.restore();
       }
+
       // Pfeil
       ctx.beginPath();
       ctx.moveTo(150, 10);
@@ -162,26 +181,37 @@
       ctx.fill();
     }
 
+    let spinning = false;
+
     function spinWheel() {
       if (spinning) return;
       spinning = true;
-      let spinAngle = Math.random() * 2000 + 3000;
-      let duration = 4000;
+
+      const index = pickWeighted();
+      const sliceAngle = (2 * Math.PI) / options.length;
+      const targetAngle = (1.5 * Math.PI) - (sliceAngle * index) - (sliceAngle / 2);
+      const totalRotation = 10 * 2 * Math.PI + targetAngle;
+
       let start = null;
+      let duration = 4000;
       function animate(timestamp) {
         if (!start) start = timestamp;
         let progress = timestamp - start;
-        let eased = 1 - Math.pow(1 - progress / duration, 3);
-        angle = (spinAngle * eased) / 180 * Math.PI;
-        drawWheel();
+        let eased = 1 - Math.pow(1 - progress / duration, 4);
+        const angle = eased * totalRotation;
+        drawWheel(angle);
         if (progress < duration) {
           requestAnimationFrame(animate);
         } else {
           spinning = false;
-          let deg = (angle * 180 / Math.PI) % 360;
-          let index = Math.floor(segments.length - (deg / 360 * segments.length)) % segments.length;
-          if (index < 0) index += segments.length;
-          document.getElementById("spinResult").textContent = `🎁 Du hast erhalten: ${segments[index]}!`;
+          const result = options[index].label;
+          document.getElementById("spinResult").textContent = `🎁 Du hast erhalten: ${result}!`;
+          if (index === 0) {
+            setTimeout(() => {
+              alert("Die geheime Erkenntnis hat dich verschlungen. Die Seite wird geschlossen.");
+              window.close();
+            }, 1000);
+          }
         }
       }
       requestAnimationFrame(animate);
@@ -189,7 +219,7 @@
 
     drawWheel();
 
-    // Quiz
+    // Goethe-Quiz
     const questions = [
       {
         question: "Wie heißt Goethes berühmtestes Drama?",
@@ -197,13 +227,8 @@
         correct: 1
       },
       {
-        question: "In welchen Bereichen war Goethe aktiv?",
-        answers: ["Kunst", "Architektur", "Politik", "Landwirtschaft"],
-        correct: 2
-      },
-      {
-        question: "Welcher berühmte Naturwissenschaftler wurde von Goethe kritisiert?",
-        answers: ["Newton", "Einstein", "Napoleon", "Darwin"],
+        question: "Welcher Naturwissenschaftler wurde von Goethe kritisiert?",
+        answers: ["Newton", "Einstein", "Darwin", "Kant"],
         correct: 0
       },
       {
