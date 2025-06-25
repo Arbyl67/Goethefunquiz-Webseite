@@ -80,7 +80,7 @@
   <h1>😂 Willkommen auf der superlustigen Goethe-Seite 😂</h1>
 
   <div id="foundCount">Goethe-Kopf gefunden: 0 mal</div>
-  <img id="goetheHead" src="images/goethe-kopf.png" alt="Goethe Kopf" title="Finde mich!" />
+  <img id="goetheHead" src="attached_assets/Goethe Kopf_1750770014760.png" alt="Goethe Kopf" title="Finde mich!" />
 
   <div class="question-box" id="quizBox">
     <div id="question">Lade Fragen...</div>
@@ -125,6 +125,11 @@
     goetheHead.style.left = randX + "px";
     goetheHead.style.top = randY + "px";
   }
+
+  // Fallback für Bild falls es nicht lädt
+  goetheHead.onerror = () => {
+    goetheHead.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Goethe_%28Stieler_1828%29.jpg/200px-Goethe_%28Stieler_1828%29.jpg";
+  };
 
   goetheHead.onclick = () => {
     foundCount++;
