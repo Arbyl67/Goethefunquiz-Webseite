@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Goethe Spaßseite</title>
+  <title>Goethe Fun Zone</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,19 +11,24 @@
       background-size: 400% 400%;
       animation: bg 30s ease infinite;
       text-align: center;
-      padding: 20px;
+      padding: 0;
       margin: 0;
-      overflow-x: hidden;
       min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
     }
+
     @keyframes bg {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
       100% {background-position: 0% 50%;}
     }
+
     h1 {
       color: #5a189a;
+      padding: 20px 0 0;
     }
+
     .section {
       background: rgba(255,255,255,0.9);
       margin: 20px auto;
@@ -32,6 +37,7 @@
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
+
     .btn {
       background: #5a189a;
       color: white;
@@ -42,9 +48,11 @@
       margin: 5px;
       font-size: 1rem;
     }
+
     .btn:hover {
       background: #3c096c;
     }
+
     #goetheHead {
       width: 70px;
       position: absolute;
@@ -52,13 +60,26 @@
       transition: transform 0.3s ease;
       z-index: 999;
     }
+
     #wheelCanvas {
       margin-top: 20px;
+    }
+
+    #answers .btn {
+      display: block;
+      margin: 10px auto;
+      width: 80%;
+    }
+
+    #result {
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>😂 Goethe Super Fun Zone 😂</h1>
+  <h1>🎉 Goethe Fun Zone 🎉</h1>
   <div id="foundCount">Goethe-Kopf gefunden: 0 mal</div>
   <img id="goetheHead" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Johann_Wolfgang_von_Goethe_Stieler_1828.jpg/120px-Johann_Wolfgang_von_Goethe_Stieler_1828.jpg" />
 
@@ -71,136 +92,178 @@
     <div id="spinResult" style="font-weight:bold;margin-top:10px;"></div>
   </div>
 
-  <!-- Minispiel -->
+  <!-- Goethe Quiz -->
   <div class="section">
-    <h2>Minispiel: Klick den Goethe-Kopf!</h2>
-    <button class="btn" id="startGameBtn">Spiel starten</button>
-    <p id="miniGameTimer">Zeit: 10</p>
-    <p id="miniGameScore">Punkte: 0</p>
-    <p id="miniGameResult"></p>
+    <h2>📚 Goethe Quiz</h2>
+    <div id="question">Lade Frage...</div>
+    <div id="answers"></div>
+    <div id="result"></div>
+    <button id="nextBtn" class="btn" style="display:none">Nächste Frage</button>
   </div>
 
-  <!-- Quiz (vereinfachter Platzhalter) -->
-  <div class="section">
-    <h2>Goethe Quiz</h2>
-    <p><em>Hier könnte dein Quiz laufen...</em></p>
-  </div>
-
-<script>
-  // Goethe-Kopf Bewegung
-  const goetheHead = document.getElementById("goetheHead");
-  let foundCount = 0;
-  function moveGoetheHead() {
-    const x = Math.random() * (window.innerWidth - 100);
-    const y = Math.random() * (window.innerHeight - 100);
-    goetheHead.style.left = `${x}px`;
-    goetheHead.style.top = `${y}px`;
-  }
-  goetheHead.onclick = () => {
-    if (miniGameRunning) {
-      miniGameScore++;
-      document.getElementById("miniGameScore").textContent = `Punkte: ${miniGameScore}`;
-    } else {
+  <script>
+    // Goethe-Kopf
+    const goetheHead = document.getElementById("goetheHead");
+    let foundCount = 0;
+    function moveGoetheHead() {
+      const x = Math.random() * (window.innerWidth - 100);
+      const y = Math.random() * (window.innerHeight - 100);
+      goetheHead.style.left = `${x}px`;
+      goetheHead.style.top = `${y}px`;
+    }
+    goetheHead.onclick = () => {
       foundCount++;
       document.getElementById("foundCount").textContent = `Goethe-Kopf gefunden: ${foundCount} mal`;
-    }
+      moveGoetheHead();
+      goetheHead.style.transform = "scale(1.3)";
+      setTimeout(() => goetheHead.style.transform = "scale(1)", 300);
+    };
     moveGoetheHead();
-    goetheHead.style.transform = "scale(1.3)";
-    setTimeout(() => goetheHead.style.transform = "scale(1)", 300);
-  };
-  moveGoetheHead();
-  window.addEventListener("resize", moveGoetheHead);
+    window.addEventListener("resize", moveGoetheHead);
 
-  // Minispiel
-  let miniGameRunning = false;
-  let miniGameScore = 0;
-  document.getElementById("startGameBtn").onclick = () => {
-    if (miniGameRunning) return;
-    miniGameRunning = true;
-    miniGameScore = 0;
-    let timeLeft = 10;
-    document.getElementById("miniGameResult").textContent = "";
-    document.getElementById("miniGameTimer").textContent = `Zeit: ${timeLeft}`;
-    document.getElementById("miniGameScore").textContent = `Punkte: ${miniGameScore}`;
-    goetheHead.style.display = "block";
-    const interval = setInterval(() => {
-      timeLeft--;
-      document.getElementById("miniGameTimer").textContent = `Zeit: ${timeLeft}`;
-      if (timeLeft <= 0) {
-        clearInterval(interval);
-        miniGameRunning = false;
-        document.getElementById("miniGameResult").textContent = `Spiel beendet! Du hast ${miniGameScore} Treffer erzielt.`;
+    // Glücksrad
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+    const segments = [
+      "Goethe-Goldmünze", "Faust-Maske", "Schiller-Buch",
+      "Weimar-Reise", "Gedichtband", "Geheimer Brief",
+      "Federhalter", "Nichts", "Tinte der Wahrheit", "Licht-Essenz"
+    ];
+    let angle = 0;
+    let spinning = false;
+
+    function drawWheel() {
+      const centerX = 150, centerY = 150;
+      const radius = 140;
+      const arcSize = (2 * Math.PI) / segments.length;
+      ctx.clearRect(0, 0, 300, 300);
+      for (let i = 0; i < segments.length; i++) {
+        ctx.beginPath();
+        ctx.fillStyle = i % 2 === 0 ? "#ffb347" : "#ffc0cb";
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, arcSize * i + angle, arcSize * (i + 1) + angle);
+        ctx.lineTo(centerX, centerY);
+        ctx.fill();
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(arcSize * i + arcSize / 2 + angle);
+        ctx.fillStyle = "#000";
+        ctx.font = "12px sans-serif";
+        ctx.fillText(segments[i], 60, 0);
+        ctx.restore();
       }
-    }, 1000);
-  };
-
-  // Glücksrad
-  const canvas = document.getElementById("wheelCanvas");
-  const ctx = canvas.getContext("2d");
-  const segments = [
-    "Goethe-Goldmünze", "Faust-Maske", "Schiller-Slap", 
-    "Weimar-Reise", "Gedichtband", "Kaffeekränzchen", 
-    "Nichts gewonnen", "Zitate-Bombe"
-  ];
-  let angle = 0;
-  let spinning = false;
-
-  function drawWheel() {
-    const centerX = 150, centerY = 150;
-    const radius = 140;
-    const numSegments = segments.length;
-    const arcSize = (2 * Math.PI) / numSegments;
-    ctx.clearRect(0, 0, 300, 300);
-    for (let i = 0; i < numSegments; i++) {
+      // Pfeil
       ctx.beginPath();
-      ctx.fillStyle = i % 2 === 0 ? "#ffb347" : "#ffc0cb";
-      ctx.moveTo(centerX, centerY);
-      ctx.arc(centerX, centerY, radius, arcSize * i + angle, arcSize * (i + 1) + angle);
-      ctx.lineTo(centerX, centerY);
+      ctx.moveTo(150, 10);
+      ctx.lineTo(140, 30);
+      ctx.lineTo(160, 30);
+      ctx.closePath();
+      ctx.fillStyle = "red";
       ctx.fill();
-      ctx.save();
-      ctx.translate(centerX, centerY);
-      ctx.rotate(arcSize * i + arcSize / 2 + angle);
-      ctx.fillStyle = "#000";
-      ctx.font = "12px sans-serif";
-      ctx.fillText(segments[i], 70, 0);
-      ctx.restore();
     }
-    // Pfeil
-    ctx.beginPath();
-    ctx.moveTo(150, 10);
-    ctx.lineTo(140, 30);
-    ctx.lineTo(160, 30);
-    ctx.closePath();
-    ctx.fillStyle = "red";
-    ctx.fill();
-  }
 
-  function spinWheel() {
-    if (spinning) return;
-    spinning = true;
-    let spinAngle = Math.random() * 2000 + 3000;
-    let duration = 4000;
-    let start = null;
-    function animate(timestamp) {
-      if (!start) start = timestamp;
-      let progress = timestamp - start;
-      let eased = 1 - Math.pow(1 - progress / duration, 3); // easeOutCubic
-      angle = (spinAngle * eased) / 180 * Math.PI;
-      drawWheel();
-      if (progress < duration) {
-        requestAnimationFrame(animate);
-      } else {
-        spinning = false;
-        let deg = (angle * 180 / Math.PI) % 360;
-        let index = Math.floor(segments.length - (deg / 360 * segments.length)) % segments.length;
-        document.getElementById("spinResult").textContent = `🎁 Du hast erhalten: ${segments[index]}!`;
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+      let spinAngle = Math.random() * 2000 + 3000;
+      let duration = 4000;
+      let start = null;
+      function animate(timestamp) {
+        if (!start) start = timestamp;
+        let progress = timestamp - start;
+        let eased = 1 - Math.pow(1 - progress / duration, 3);
+        angle = (spinAngle * eased) / 180 * Math.PI;
+        drawWheel();
+        if (progress < duration) {
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          let deg = (angle * 180 / Math.PI) % 360;
+          let index = Math.floor(segments.length - (deg / 360 * segments.length)) % segments.length;
+          if (index < 0) index += segments.length;
+          document.getElementById("spinResult").textContent = `🎁 Du hast erhalten: ${segments[index]}!`;
+        }
       }
+      requestAnimationFrame(animate);
     }
-    requestAnimationFrame(animate);
-  }
 
-  drawWheel();
-</script>
+    drawWheel();
+
+    // Quiz
+    const questions = [
+      {
+        question: "Wie heißt Goethes berühmtestes Drama?",
+        answers: ["Egmont", "Faust", "Die Leiden des jungen Werther", "Götz von Berlichingen"],
+        correct: 1
+      },
+      {
+        question: "In welchen Bereichen war Goethe aktiv?",
+        answers: ["Kunst", "Architektur", "Politik", "Landwirtschaft"],
+        correct: 2
+      },
+      {
+        question: "Welcher berühmte Naturwissenschaftler wurde von Goethe kritisiert?",
+        answers: ["Newton", "Einstein", "Napoleon", "Darwin"],
+        correct: 0
+      },
+      {
+        question: "Wie alt wurde Goethe?",
+        answers: ["77", "82", "98", "44"],
+        correct: 1
+      },
+      {
+        question: "Was war Goethes Beruf neben dem Schreiben?",
+        answers: ["Gärtner", "Minister/Richter", "Musiker", "Polizist"],
+        correct: 1
+      }
+    ];
+
+    let current = 0;
+    let score = 0;
+    const questionEl = document.getElementById("question");
+    const answersEl = document.getElementById("answers");
+    const resultEl = document.getElementById("result");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function showQuestion() {
+      const q = questions[current];
+      questionEl.textContent = q.question;
+      answersEl.innerHTML = "";
+      resultEl.textContent = "";
+      nextBtn.style.display = "none";
+      q.answers.forEach((answer, i) => {
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.textContent = answer;
+        btn.onclick = () => checkAnswer(i);
+        answersEl.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(i) {
+      const isCorrect = i === questions[current].correct;
+      if (isCorrect) {
+        score++;
+        resultEl.textContent = "✅ Richtig!";
+      } else {
+        resultEl.textContent = "❌ Falsch!";
+      }
+      Array.from(answersEl.children).forEach(btn => btn.disabled = true);
+      nextBtn.style.display = "inline-block";
+    }
+
+    nextBtn.onclick = () => {
+      current++;
+      if (current < questions.length) {
+        showQuestion();
+      } else {
+        questionEl.textContent = "🎉 Quiz beendet!";
+        answersEl.innerHTML = `Du hast ${score} von ${questions.length} Fragen richtig beantwortet.`;
+        nextBtn.style.display = "none";
+      }
+    };
+
+    showQuestion();
+  </script>
 </body>
 </html>
