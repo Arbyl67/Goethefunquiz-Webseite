@@ -3,326 +3,204 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ultra Lustige Goethe-Seite</title>
+  <title>Goethe Spaßseite</title>
   <style>
-    /* Live Hintergrund: sanfte Farbverläufe animiert */
-    @keyframes bgAnimation {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(-45deg, #ffe4b5, #ffc0cb, #ffb347, #5a189a);
       background-size: 400% 400%;
-      animation: bgAnimation 30s ease infinite;
+      animation: bg 30s ease infinite;
       text-align: center;
       padding: 20px;
-      position: relative;
+      margin: 0;
       overflow-x: hidden;
       min-height: 100vh;
-      margin: 0;
+    }
+    @keyframes bg {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
     }
     h1 {
-      font-size: 2.5rem;
       color: #5a189a;
-      text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
     }
-    .question-box, #caseSection, #minigameSection {
-      background: rgba(255, 255, 255, 0.85);
-      padding: 20px;
+    .section {
+      background: rgba(255,255,255,0.9);
       margin: 20px auto;
-      border-radius: 12px;
+      padding: 20px;
       max-width: 600px;
+      border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      user-select: none;
     }
     .btn {
-      display: inline-block;
-      margin: 10px 5px;
+      background: #5a189a;
+      color: white;
       padding: 10px 20px;
       border: none;
       border-radius: 8px;
-      background: #5a189a;
-      color: white;
       cursor: pointer;
+      margin: 5px;
       font-size: 1rem;
-      user-select: none;
-      transition: background 0.3s ease;
     }
-    .btn:hover:not(:disabled) {
+    .btn:hover {
       background: #3c096c;
-    }
-    #result, #caseResult, #miniGameResult {
-      font-weight: bold;
-      font-size: 1.2rem;
-      color: green;
-      margin-top: 10px;
-      min-height: 1.5rem;
     }
     #goetheHead {
       width: 70px;
       position: absolute;
       cursor: pointer;
-      user-select: none;
       transition: transform 0.3s ease;
-      z-index: 1000;
+      z-index: 999;
     }
-    #foundCount {
-      font-weight: bold;
-      color: #5a189a;
-      margin: 15px 0 0 0;
-      font-size: 1.1rem;
+    #wheelCanvas {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>😂 Willkommen auf der superlustigen Goethe-Seite 😂</h1>
-
+  <h1>😂 Goethe Super Fun Zone 😂</h1>
   <div id="foundCount">Goethe-Kopf gefunden: 0 mal</div>
-  <img id="goetheHead" src="Goethe Kopf.png" alt="Goethe Kopf" title="Finde mich!" />
+  <img id="goetheHead" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Johann_Wolfgang_von_Goethe_Stieler_1828.jpg/120px-Johann_Wolfgang_von_Goethe_Stieler_1828.jpg" />
 
-  <div class="question-box" id="quizBox">
-    <div id="question">Lade Fragen...</div>
-    <div id="answers"></div>
-    <div id="result"></div>
-    <button id="checkAnswerBtn" class="btn" style="display:none">Antwort prüfen</button>
-    <button id="nextBtn" class="btn" style="display:none">Nächste Frage</button>
+  <!-- Glücksrad -->
+  <div class="section">
+    <h2>🎡 Goethe Glücksrad</h2>
+    <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    <br />
+    <button class="btn" onclick="spinWheel()">Drehen!</button>
+    <div id="spinResult" style="font-weight:bold;margin-top:10px;"></div>
   </div>
 
-  <div id="caseSection">
-    <h2>CSGO Goethe Special Edition Kiste öffnen</h2>
-    <button id="caseBtn" class="btn">Kiste öffnen</button>
-    <div id="caseResult"></div>
+  <!-- Minispiel -->
+  <div class="section">
+    <h2>Minispiel: Klick den Goethe-Kopf!</h2>
+    <button class="btn" id="startGameBtn">Spiel starten</button>
+    <p id="miniGameTimer">Zeit: 10</p>
+    <p id="miniGameScore">Punkte: 0</p>
+    <p id="miniGameResult"></p>
   </div>
 
-  <div id="minigameSection" class="question-box">
-    <h2>Minispiel: Klick schnell den Goethe-Kopf!</h2>
-    <p>Klicke den Goethe-Kopf so oft wie möglich in 10 Sekunden!</p>
-    <button id="startGameBtn" class="btn">Spiel starten</button>
-    <div id="miniGameTimer" style="font-size:1.2rem; margin-top:10px;">Zeit: 10</div>
-    <div id="miniGameScore" style="font-size:1.2rem; margin-top:5px;">Punkte: 0</div>
-    <div id="miniGameResult"></div>
+  <!-- Quiz (vereinfachter Platzhalter) -->
+  <div class="section">
+    <h2>Goethe Quiz</h2>
+    <p><em>Hier könnte dein Quiz laufen...</em></p>
   </div>
 
 <script>
-  // --- Goethe Kopf versteckspiel ---
+  // Goethe-Kopf Bewegung
   const goetheHead = document.getElementById("goetheHead");
-  const foundCountEl = document.getElementById("foundCount");
   let foundCount = 0;
-
-  function placeGoetheHeadRandom() {
-    const padding = 10;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const iw = goetheHead.offsetWidth;
-    const ih = goetheHead.offsetHeight;
-    const maxX = vw - iw - padding;
-    const maxY = vh - ih - padding;
-    const randX = Math.floor(Math.random() * maxX) + padding;
-    const randY = Math.floor(Math.random() * maxY) + padding;
-    goetheHead.style.left = randX + "px";
-    goetheHead.style.top = randY + "px";
+  function moveGoetheHead() {
+    const x = Math.random() * (window.innerWidth - 100);
+    const y = Math.random() * (window.innerHeight - 100);
+    goetheHead.style.left = `${x}px`;
+    goetheHead.style.top = `${y}px`;
   }
-
   goetheHead.onclick = () => {
-    foundCount++;
-    foundCountEl.textContent = `Goethe-Kopf gefunden: ${foundCount} mal`;
-    placeGoetheHeadRandom();
-    goetheHead.style.transform = "scale(1.3)";
-    setTimeout(() => {
-      goetheHead.style.transform = "scale(1)";
-    }, 300);
-  };
-
-  placeGoetheHeadRandom();
-  window.addEventListener("resize", placeGoetheHeadRandom);
-
-  // --- Goethe Quiz ---
-  const questions = [
-    {question: "Wie heißt Goethes berühmtestes Drama?", answers: ["Egmont", "Faust", "Die Leiden des jungen Werther", "Götz von Berlichingen"], correct: [1]},
-    {question: "In welchen Bereichen war Goethe aktiv?", answers: ["Kunst", "Architektur", "Politik", "Landwirtschaft"], correct: [0,2]},
-    {question: "Welcher berühmte Naturwissenschaftler wurde von Goethe kritisiert?", answers: ["Newton", "Einstein", "Napoleon", "Darwin"], correct: [0]},
-    {question: "Wie alt wurde Goethe?", answers: ["77", "82", "98", "44"], correct: [1]},
-    {question: "Was war Goethes Beruf neben dem Schreiben?", answers: ["Gärtner", "Minister/Richter", "Musiker", "Polizist"], correct: [1]},
-    {question: "Wann wurde Goethe geboren?", answers: ["1749", "1740", "1765", "1756"], correct: [0]},
-    {question: "Welches Werk schrieb Goethe im Sturm und Drang?", answers: ["Faust", "Die Leiden des jungen Werther", "Egmont", "Torquato Tasso"], correct: [1]},
-    {question: "In welcher Stadt wurde Goethe geboren?", answers: ["Weimar", "Frankfurt am Main", "Leipzig", "Berlin"], correct: [1]},
-    {question: "Was war Goethes Lieblingsfarbe?", answers: ["Blau", "Rot", "Grün", "Gelb"], correct: [0]},
-    {question: "Welche literarische Epoche prägte Goethe mit?", answers: ["Romantik", "Sturm und Drang", "Klassik", "Expressionismus"], correct: [1,2]},
-    {question: "Was studierte Goethe?", answers: ["Medizin", "Jura", "Philosophie", "Theologie"], correct: [1]},
-    {question: "Wie heißt Goethes berühmteste Tragödie?", answers: ["Faust", "Egmont", "Iphigenie auf Tauris", "Götz von Berlichingen"], correct: [0]},
-    {question: "Welches Instrument spielte Goethe?", answers: ["Klavier", "Violine", "Flöte", "Cello"], correct: [2]},
-    {question: "Mit welchem berühmten Dichter war Goethe befreundet?", answers: ["Schiller", "Heine", "Brecht", "Goethe war Einzelgänger"], correct: [0]},
-    {question: "Welche Sprache beherrschte Goethe fließend?", answers: ["Englisch", "Französisch", "Italienisch", "Spanisch"], correct: [2]},
-    {question: "Welches Werk ist kein Drama von Goethe?", answers: ["Faust", "Egmont", "Wilhelm Tell", "Götz von Berlichingen"], correct: [2]},
-    {question: "Welche literarische Form bevorzugte Goethe?", answers: ["Drama", "Roman", "Lyrik", "Essay"], correct: [0,2]},
-    {question: "Welche Farbe hasste Goethe?", answers: ["Blau", "Gelb", "Grün", "Lila"], correct: [0]},
-    {question: "Was war Goethe’s Lieblingsgetränk?", answers: ["Wein", "Kaffee", "Tee", "Bier"], correct: [1]},
-    {question: "Welches berühmte Gedicht schrieb Goethe?", answers: ["Erlkönig", "Prometheus", "Der Zauberlehrling", "Willkommen und Abschied"], correct: [1,3]},
-    {question: "Wo hat Goethe einen Großteil seines Lebens verbracht?", answers: ["Frankfurt", "Weimar", "Jena", "Leipzig"], correct: [1]},
-    {question: "Welches Thema findet man oft in Goethes Werken?", answers: ["Liebe", "Tod", "Natur", "Technologie"], correct: [0,1,2]},
-    {question: "Was ist Goethes bekanntestes Werk?", answers: ["Faust", "Die Leiden des jungen Werther", "Wilhelm Meister", "Iphigenie auf Tauris"], correct: [0]},
-    {question: "Welcher Beruf war Goethe NICHT?", answers: ["Jurist", "Dichter", "Maler", "Naturwissenschaftler"], correct: [2]},
-    {question: "Welche Reise unternahm Goethe 1786-1788?", answers: ["Italienreise", "Französische Reise", "Spanienreise", "Englandsreise"], correct: [0]},
-  ];
-
-  let currentQuestionIndex = 0;
-  let score = 0;
-  let selectedAnswers = new Set();
-
-  const questionEl = document.getElementById("question");
-  const answersEl = document.getElementById("answers");
-  const resultEl = document.getElementById("result");
-  const checkAnswerBtn = document.getElementById("checkAnswerBtn");
-  const nextBtn = document.getElementById("nextBtn");
-
-  function shuffleArray(arr) {
-    for(let i = arr.length -1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i+1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-  }
-
-  shuffleArray(questions);
-  const quizQuestions = questions.slice(0, 25);
-
-  function showQuestion() {
-    selectedAnswers.clear();
-    checkAnswerBtn.style.display = "inline-block";
-    nextBtn.style.display = "none";
-    resultEl.textContent = "";
-    const q = quizQuestions[currentQuestionIndex];
-    questionEl.textContent = q.question;
-    answersEl.innerHTML = "";
-
-    q.answers.forEach((answer, i) => {
-      const btn = document.createElement("button");
-      btn.className = "btn";
-      btn.textContent = answer;
-      btn.dataset.index = i;
-      btn.style.display = "inline-block";
-      btn.style.margin = "5px";
-      btn.onclick = () => {
-        if(selectedAnswers.has(i)) {
-          selectedAnswers.delete(i);
-          btn.style.backgroundColor = "#5a189a";
-        } else {
-          selectedAnswers.add(i);
-          btn.style.backgroundColor = "#3c096c";
-        }
-      };
-      answersEl.appendChild(btn);
-    });
-  }
-
-  checkAnswerBtn.onclick = () => {
-    const q = quizQuestions[currentQuestionIndex];
-    const correctSet = new Set(q.correct);
-    if(selectedAnswers.size === 0) {
-      resultEl.style.color = "red";
-      resultEl.textContent = "Bitte wähle mindestens eine Antwort.";
-      return;
-    }
-    // Prüfen ob alle richtigen ausgewählt und keine falschen dabei sind
-    let isCorrect = selectedAnswers.size === correctSet.size && [...selectedAnswers].every(x => correctSet.has(x));
-    if(isCorrect) {
-      score++;
-      resultEl.style.color = "green";
-      resultEl.textContent = "Richtig! 👍";
+    if (miniGameRunning) {
+      miniGameScore++;
+      document.getElementById("miniGameScore").textContent = `Punkte: ${miniGameScore}`;
     } else {
-      resultEl.style.color = "red";
-      let correctAnswersText = q.correct.map(i => q.answers[i]).join(", ");
-      resultEl.textContent = `Falsch! Richtige Antwort(en): ${correctAnswersText}`;
+      foundCount++;
+      document.getElementById("foundCount").textContent = `Goethe-Kopf gefunden: ${foundCount} mal`;
     }
-    checkAnswerBtn.style.display = "none";
-    nextBtn.style.display = "inline-block";
+    moveGoetheHead();
+    goetheHead.style.transform = "scale(1.3)";
+    setTimeout(() => goetheHead.style.transform = "scale(1)", 300);
   };
+  moveGoetheHead();
+  window.addEventListener("resize", moveGoetheHead);
 
-  nextBtn.onclick = () => {
-    currentQuestionIndex++;
-    if(currentQuestionIndex >= quizQuestions.length) {
-      questionEl.textContent = `Quiz beendet! Deine Punktzahl: ${score} von ${quizQuestions.length}`;
-      answersEl.innerHTML = "";
-      checkAnswerBtn.style.display = "none";
-      nextBtn.style.display = "none";
-      resultEl.textContent = "";
-      return;
-    }
-    showQuestion();
-  };
-
-  showQuestion();
-
-  // --- Minispiel: Klick den Goethe Kopf so oft wie möglich in 10 Sekunden ---
-  const startGameBtn = document.getElementById("startGameBtn");
-  const miniGameTimerEl = document.getElementById("miniGameTimer");
-  const miniGameScoreEl = document.getElementById("miniGameScore");
-  const miniGameResultEl = document.getElementById("miniGameResult");
-
-  let miniGameScore = 0;
-  let miniGameTimeLeft = 10;
-  let miniGameInterval = null;
+  // Minispiel
   let miniGameRunning = false;
-
-  function resetMiniGame() {
-    miniGameScore = 0;
-    miniGameTimeLeft = 10;
-    miniGameScoreEl.textContent = `Punkte: ${miniGameScore}`;
-    miniGameTimerEl.textContent = `Zeit: ${miniGameTimeLeft}`;
-    miniGameResultEl.textContent = "";
-    goetheHead.style.display = "none";
-    miniGameRunning = false;
-    startGameBtn.disabled = false;
-  }
-
-  function miniGameTick() {
-    miniGameTimeLeft--;
-    miniGameTimerEl.textContent = `Zeit: ${miniGameTimeLeft}`;
-    if(miniGameTimeLeft <= 0) {
-      clearInterval(miniGameInterval);
-      miniGameRunning = false;
-      goetheHead.style.display = "none";
-      miniGameResultEl.textContent = `Spiel vorbei! Du hast ${miniGameScore} mal getroffen!`;
-      startGameBtn.disabled = false;
-    }
-  }
-
-  function miniGameGoetheClick() {
-    if(!miniGameRunning) return;
-    miniGameScore++;
-    miniGameScoreEl.textContent = `Punkte: ${miniGameScore}`;
-    placeGoetheHeadRandom();
-  }
-
-  startGameBtn.onclick = () => {
-    if(miniGameRunning) return;
-    miniGameScore = 0;
-    miniGameTimeLeft = 10;
-    miniGameScoreEl.textContent = `Punkte: ${miniGameScore}`;
-    miniGameTimerEl.textContent = `Zeit: ${miniGameTimeLeft}`;
-    miniGameResultEl.textContent = "";
+  let miniGameScore = 0;
+  document.getElementById("startGameBtn").onclick = () => {
+    if (miniGameRunning) return;
     miniGameRunning = true;
-    startGameBtn.disabled = true;
+    miniGameScore = 0;
+    let timeLeft = 10;
+    document.getElementById("miniGameResult").textContent = "";
+    document.getElementById("miniGameTimer").textContent = `Zeit: ${timeLeft}`;
+    document.getElementById("miniGameScore").textContent = `Punkte: ${miniGameScore}`;
     goetheHead.style.display = "block";
-    placeGoetheHeadRandom();
-    miniGameInterval = setInterval(miniGameTick, 1000);
+    const interval = setInterval(() => {
+      timeLeft--;
+      document.getElementById("miniGameTimer").textContent = `Zeit: ${timeLeft}`;
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        miniGameRunning = false;
+        document.getElementById("miniGameResult").textContent = `Spiel beendet! Du hast ${miniGameScore} Treffer erzielt.`;
+      }
+    }, 1000);
   };
 
-  goetheHead.addEventListener("click", () => {
-    // Wenn Minispiel läuft, zählt der Klick fürs Minispiel
-    if(miniGameRunning) {
-      miniGameGoetheClick();
+  // Glücksrad
+  const canvas = document.getElementById("wheelCanvas");
+  const ctx = canvas.getContext("2d");
+  const segments = [
+    "Goethe-Goldmünze", "Faust-Maske", "Schiller-Slap", 
+    "Weimar-Reise", "Gedichtband", "Kaffeekränzchen", 
+    "Nichts gewonnen", "Zitate-Bombe"
+  ];
+  let angle = 0;
+  let spinning = false;
+
+  function drawWheel() {
+    const centerX = 150, centerY = 150;
+    const radius = 140;
+    const numSegments = segments.length;
+    const arcSize = (2 * Math.PI) / numSegments;
+    ctx.clearRect(0, 0, 300, 300);
+    for (let i = 0; i < numSegments; i++) {
+      ctx.beginPath();
+      ctx.fillStyle = i % 2 === 0 ? "#ffb347" : "#ffc0cb";
+      ctx.moveTo(centerX, centerY);
+      ctx.arc(centerX, centerY, radius, arcSize * i + angle, arcSize * (i + 1) + angle);
+      ctx.lineTo(centerX, centerY);
+      ctx.fill();
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate(arcSize * i + arcSize / 2 + angle);
+      ctx.fillStyle = "#000";
+      ctx.font = "12px sans-serif";
+      ctx.fillText(segments[i], 70, 0);
+      ctx.restore();
     }
-  });
+    // Pfeil
+    ctx.beginPath();
+    ctx.moveTo(150, 10);
+    ctx.lineTo(140, 30);
+    ctx.lineTo(160, 30);
+    ctx.closePath();
+    ctx.fillStyle = "red";
+    ctx.fill();
+  }
 
-  // Seite lädt? Zeige "Lade..." kurz an
-  window.onload = () => {
-    questionEl.textContent = "Lade...";
-    setTimeout(() => {
-      showQuestion();
-    }, 500);
-  };
+  function spinWheel() {
+    if (spinning) return;
+    spinning = true;
+    let spinAngle = Math.random() * 2000 + 3000;
+    let duration = 4000;
+    let start = null;
+    function animate(timestamp) {
+      if (!start) start = timestamp;
+      let progress = timestamp - start;
+      let eased = 1 - Math.pow(1 - progress / duration, 3); // easeOutCubic
+      angle = (spinAngle * eased) / 180 * Math.PI;
+      drawWheel();
+      if (progress < duration) {
+        requestAnimationFrame(animate);
+      } else {
+        spinning = false;
+        let deg = (angle * 180 / Math.PI) % 360;
+        let index = Math.floor(segments.length - (deg / 360 * segments.length)) % segments.length;
+        document.getElementById("spinResult").textContent = `🎁 Du hast erhalten: ${segments[index]}!`;
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  drawWheel();
 </script>
 </body>
 </html>
