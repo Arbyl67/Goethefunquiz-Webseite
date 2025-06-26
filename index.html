@@ -80,8 +80,9 @@
   <h1>😂 Willkommen auf der superlustigen Goethe-Seite 😂</h1>
 
   <div id="foundCount">Goethe-Kopf gefunden: 0 mal</div>
-  <!-- Goethe Bild aus dem Internet -->
-  <img id="goetheHead" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Goethe_%28Stieler_1828%29.jpg/240px-Goethe_%28Stieler_1828%29.jpg" alt="Goethe Kopf" title="Finde mich!" />
+  <!-- Goethe Kopf aus eigenem Ordner -->
+  <img id="goetheHead" src="Goethe%20Kopf.png" alt="Goethe Kopf" title="Finde mich!" />
+
   <div class="question-box" id="quizBox">
     <div id="question">Lade Fragen...</div>
     <div id="answers"></div>
@@ -144,11 +145,158 @@
   window.addEventListener("resize", placeGoetheHeadRandom);
 
   // --- Goethe Quiz ---
-  // (dein Quiz-Code bleibt gleich)
-  // ... (bitte den Code-Teil aus deiner Datei übernehmen, wurde nicht verändert!) ...
+  const questions = [
+    {
+      question: "Wie lautet Goethes Vorname?",
+      answers: ["Johann Wolfgang", "Friedrich", "Ludwig", "Heinrich"],
+      correct: 0
+    },
+    {
+      question: "Welches Werk stammt von Goethe?",
+      answers: ["Faust", "Die Räuber", "Kabale und Liebe", "Der zerbrochne Krug"],
+      correct: 0
+    },
+    {
+      question: "In welcher Stadt wurde Goethe geboren?",
+      answers: ["Frankfurt am Main", "Weimar", "Leipzig", "Berlin"],
+      correct: 0
+    },
+    {
+      question: "Welcher Beruf war Goethe NICHT?",
+      answers: ["Bäcker", "Dichter", "Naturforscher", "Minister"],
+      correct: 0
+    }
+  ];
+  let current = 0;
+  let selected = null;
 
-  // --- Glücksrad & Minigame ---
-  // (bleibt ebenfalls gleich wie in deiner Datei)
+  const questionEl = document.getElementById("question");
+  const answersEl = document.getElementById("answers");
+  const resultEl = document.getElementById("result");
+  const checkBtn = document.getElementById("checkAnswerBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
+  function loadQuestion() {
+    const q = questions[current];
+    questionEl.textContent = q.question;
+    answersEl.innerHTML = "";
+    resultEl.textContent = "";
+    checkBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+    selected = null;
+    q.answers.forEach((ans, i) => {
+      const btn = document.createElement("button");
+      btn.textContent = ans;
+      btn.className = "btn";
+      btn.onclick = () => {
+        Array.from(answersEl.children).forEach(b => b.disabled = false);
+        btn.disabled = true;
+        selected = i;
+      };
+      answersEl.appendChild(btn);
+    });
+  }
+
+  checkBtn.onclick = function() {
+    if (selected === null) {
+      resultEl.textContent = "Bitte eine Antwort auswählen.";
+      resultEl.style.color = "red";
+      return;
+    }
+    if (selected === questions[current].correct) {
+      resultEl.textContent = "Richtig!";
+      resultEl.style.color = "green";
+    } else {
+      resultEl.textContent = "Falsch!";
+      resultEl.style.color = "red";
+    }
+    checkBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+  };
+
+  nextBtn.onclick = function() {
+    current++;
+    if (current >= questions.length) {
+      questionEl.textContent = "Quiz beendet!";
+      answersEl.innerHTML = "";
+      checkBtn.style.display = "none";
+      nextBtn.style.display = "none";
+      resultEl.textContent = "";
+    } else {
+      loadQuestion();
+    }
+  };
+
+  loadQuestion();
+
+  // --- Glücksrad ---
+  const wheelBtn = document.getElementById("wheelBtn");
+  const wheelResult = document.getElementById("wheelResult");
+  const items = [
+    "Goethes Federkiel",
+    "Original Manuskript",
+    "Brille von Goethe",
+    "Goethes Hut",
+    "Signiertes Buch",
+    "Stein aus Weimar",
+    "Goethes Spazierstock",
+    "Eine geheime Notiz"
+  ];
+  wheelBtn.onclick = function() {
+    wheelBtn.disabled = true;
+    wheelResult.textContent = "Das Rad dreht...";
+    setTimeout(() => {
+      const prize = items[Math.floor(Math.random() * items.length)];
+      wheelResult.textContent = "Du hast gewonnen: " + prize + "!";
+      wheelBtn.disabled = false;
+    }, 1500);
+  };
+
+  // --- Minispiel ---
+  const startGameBtn = document.getElementById("startGameBtn");
+  const miniGameTimer = document.getElementById("miniGameTimer");
+  const miniGameScore = document.getElementById("miniGameScore");
+  const miniGameResult = document.getElementById("miniGameResult");
+  let gameActive = false;
+  let score = 0;
+  let timer = 10;
+  let interval = null;
+
+  function resetMiniGame() {
+    gameActive = false;
+    score = 0;
+    timer = 10;
+    miniGameScore.textContent = "Punkte: 0";
+    miniGameTimer.textContent = "Zeit: 10";
+    miniGameResult.textContent = "";
+    goetheHead.style.pointerEvents = "";
+  }
+
+  startGameBtn.onclick = function() {
+    resetMiniGame();
+    gameActive = true;
+    goetheHead.style.pointerEvents = "auto";
+    miniGameResult.textContent = "";
+    interval = setInterval(() => {
+      timer--;
+      miniGameTimer.textContent = "Zeit: " + timer;
+      if (timer <= 0) {
+        clearInterval(interval);
+        gameActive = false;
+        miniGameResult.textContent = "Endstand: " + score + " Punkte!";
+        goetheHead.style.pointerEvents = "none";
+      }
+    }, 1000);
+  };
+
+  goetheHead.addEventListener("click", function(e) {
+    if (gameActive) {
+      score++;
+      miniGameScore.textContent = "Punkte: " + score;
+    }
+  });
+
+  resetMiniGame();
 </script>
 </body>
 </html>
