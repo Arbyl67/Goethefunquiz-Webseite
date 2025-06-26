@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ultra Lustige Goethe-Seite</title>
   <style>
-    /* Live Hintergrund: sanfte Farbverläufe animiert */
     @keyframes bgAnimation {
       0% {background-position: 0% 50%;}
       50% {background-position: 100% 50%;}
@@ -67,6 +66,7 @@
       user-select: none;
       transition: transform 0.3s ease;
       z-index: 1000;
+      display: block;
     }
     #foundCount {
       font-weight: bold;
@@ -80,7 +80,8 @@
   <h1>😂 Willkommen auf der superlustigen Goethe-Seite 😂</h1>
 
   <div id="foundCount">Goethe-Kopf gefunden: 0 mal</div>
-  <img id="goetheHead" src="attached_assets/81ec7809-7bfa-4cfc-9a27-e303551bb3db_1750918013010.png" alt="Goethe Kopf" title="Finde mich!" />
+  <!-- Der Bildpfad ist jetzt korrekt, Bild muss im gleichen Ordner liegen -->
+  <img id="goetheHead" src="goethe-kopf.png" alt="Goethe Kopf" title="Finde mich!" />
   <div class="question-box" id="quizBox">
     <div id="question">Lade Fragen...</div>
     <div id="answers"></div>
@@ -127,7 +128,7 @@
 
   // Fallback für Bild falls es nicht lädt
   goetheHead.onerror = () => {
-    goetheHead.src = "attached_assets/Goethe Kopf_1750770014760.png";
+    goetheHead.src = "goethe-kopf.png";
   };
 
   goetheHead.onclick = () => {
@@ -229,7 +230,6 @@
       resultEl.textContent = "Bitte wähle mindestens eine Antwort.";
       return;
     }
-    // Prüfen ob alle richtigen ausgewählt und keine falschen dabei sind
     let isCorrect = selectedAnswers.size === correctSet.size && [...selectedAnswers].every(x => correctSet.has(x));
     if(isCorrect) {
       score++;
@@ -263,7 +263,6 @@
   const wheelBtn = document.getElementById("wheelBtn");
   const wheelResult = document.getElementById("wheelResult");
 
-  // Goethes persönliche Gegenstände (häufig benutzt) + ein gefährliches Ergebnis
   const goetheItems = [
     "📖 Goethes Feder zum Schreiben",
     "🕯️ Goethes Kerzenständer", 
@@ -283,14 +282,11 @@
   ];
 
   wheelBtn.onclick = () => {
-    // Rad-Animation simulieren
     wheelBtn.disabled = true;
     wheelResult.textContent = "🎡 Das Rad dreht sich...";
-    
     setTimeout(() => {
       const randomIndex = Math.floor(Math.random() * goetheItems.length);
       const item = goetheItems[randomIndex];
-      
       if (item.includes("Totenschädel")) {
         wheelResult.style.color = "red";
         wheelResult.textContent = `💀 Oh nein! Du hast gezogen: ${item}`;
@@ -322,7 +318,6 @@
     miniGameScoreEl.textContent = `Punkte: ${miniGameScore}`;
     miniGameTimerEl.textContent = `Zeit: ${miniGameTimeLeft}`;
     miniGameResultEl.textContent = "";
-    goetheHead.style.display = "none";
     miniGameRunning = false;
     startGameBtn.disabled = false;
   }
@@ -333,7 +328,6 @@
     if(miniGameTimeLeft <= 0) {
       clearInterval(miniGameInterval);
       miniGameRunning = false;
-      goetheHead.style.display = "none";
       miniGameResultEl.textContent = `Spiel vorbei! Du hast ${miniGameScore} mal getroffen!`;
       startGameBtn.disabled = false;
     }
@@ -361,13 +355,11 @@
   };
 
   goetheHead.addEventListener("click", () => {
-    // Wenn Minispiel läuft, zählt der Klick fürs Minispiel
     if(miniGameRunning) {
       miniGameGoetheClick();
     }
   });
 
-  // Seite lädt? Zeige "Lade..." kurz an
   window.onload = () => {
     questionEl.textContent = "Lade...";
     setTimeout(() => {
