@@ -3,300 +3,425 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ultra Lustige Goethe-Seite</title>
+  <title>Goethe Quiz & Minispiel</title>
   <style>
-    @keyframes bgAnimation {
-      0% {background-position: 0% 50%;}
-      50% {background-position: 100% 50%;}
-      100% {background-position: 0% 50%;}
-    }
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(-45deg, #ffe4b5, #ffc0cb, #ffb347, #5a189a);
       background-size: 400% 400%;
       animation: bgAnimation 30s ease infinite;
       text-align: center;
-      padding: 20px;
-      position: relative;
-      overflow-x: hidden;
-      min-height: 100vh;
       margin: 0;
+      padding: 20px;
+      overflow-x: hidden;
     }
-    h1 {
-      font-size: 2.5rem;
-      color: #5a189a;
-      text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+    @keyframes bgAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
-    .question-box, #caseSection, #minigameSection {
-      background: rgba(255, 255, 255, 0.85);
+    .question-box {
+      background: white;
+      border-radius: 12px;
       padding: 20px;
       margin: 20px auto;
-      border-radius: 12px;
       max-width: 600px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      user-select: none;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
     }
     .btn {
-      display: inline-block;
-      margin: 10px 5px;
+      margin: 5px;
       padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      background: #5a189a;
-      color: white;
+      font-size: 16px;
       cursor: pointer;
-      font-size: 1rem;
-      user-select: none;
-      transition: background 0.3s ease;
+      border: none;
+      border-radius: 6px;
+      background-color: #7b2ff7;
+      color: white;
+      transition: background-color 0.3s ease;
     }
     .btn:hover:not(:disabled) {
-      background: #3c096c;
+      background-color: #5a189a;
     }
-    #result, #caseResult, #miniGameResult {
+    .btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #leaderboardList {
+      list-style: none;
+      padding: 0;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    #leaderboardList li {
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 8px;
+      background: #e0d7f5;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 16px;
+      color: #3c1361;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #leaderboardList li.current {
+      background: #7b2ff7;
+      color: white;
       font-weight: bold;
-      font-size: 1.2rem;
-      color: green;
-      margin-top: 10px;
-      min-height: 1.5rem;
+      box-shadow: 0 4px 8px rgba(123,47,247,0.5);
     }
-    #goetheHead {
-      width: 70px;
+    #goetheContainer {
+      position: relative;
+      height: 400px;
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
+      overflow: hidden;
+      background: #f0e6ff;
+      border: 2px dashed #aaa;
+      border-radius: 12px;
+    }
+    #goetheHeadImage {
       position: absolute;
+      width: 80px;
       cursor: pointer;
+      transition: top 0.3s ease, left 0.3s ease;
       user-select: none;
-      transition: transform 0.3s ease;
-      z-index: 1000;
-      display: block;
     }
-    #foundCount {
-      font-weight: bold;
+    table {
+      font-size: 18px;
+      margin: 0 auto;
+      border-collapse: collapse;
       color: #5a189a;
-      margin: 15px 0 0 0;
-      font-size: 1.1rem;
+    }
+    table td {
+      padding: 6px 12px;
+    }
+    #timerDisplay {
+      font-size: 22px;
+      margin: 15px 0;
+      color: #7b2ff7;
+      font-weight: bold;
     }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "DEIN_API_KEY",
+      authDomain: "",
+      databaseURL: "https://goethequiz-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "goethequiz",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+  </script>
 </head>
 <body>
-  <h1>😂 Willkommen auf der superlustigen Goethe-Seite 😂</h1>
 
-  <div id="foundCount">Goethe-Kopf gefunden: 0 mal</div>
-  <!-- Goethe Kopf aus eigenem Ordner -->
-  <img id="goetheHead" src="Goethe%20Kopf.png" alt="Goethe Kopf" title="Finde mich!" />
+  <h1>Willkommen beim Goethe-Quiz & Minispiel</h1>
+
+  <div id="timerDisplay">Verbleibende Zeit: <span id="timeLeft">60</span> Sekunden</div>
 
   <div class="question-box" id="quizBox">
-    <div id="question">Lade Fragen...</div>
+    <h2>🎓 Goethe Quiz</h2>
+    <div id="question">Frage wird geladen...</div>
     <div id="answers"></div>
     <div id="result"></div>
-    <button id="checkAnswerBtn" class="btn" style="display:none">Antwort prüfen</button>
-    <button id="nextBtn" class="btn" style="display:none">Nächste Frage</button>
+    <button class="btn" id="checkAnswerBtn">Antwort prüfen</button>
+    <button class="btn" id="nextBtn">Nächste Frage</button>
+    <button class="btn" id="submitQuizBtn" style="background-color: #d90429;">Quiz abgeben</button>
   </div>
 
-  <div id="wheelSection">
-    <h2>🎡 Goethes Glücksrad der Gegenstände 🎡</h2>
-    <p>Drehe das Rad und erhalte einen von Goethes persönlichen Gegenständen!</p>
-    <button id="wheelBtn" class="btn">Rad drehen</button>
-    <div id="wheelResult"></div>
+  <div class="question-box" id="goetheKopfGame">
+    <h2>🔍 Finde den Goethe-Kopf</h2>
+    <p>Klicke auf den Kopf, um Punkte zu sammeln! Er wechselt alle 5 Sekunden die Position.</p>
+    <div id="goetheContainer">
+      <img src="Goethe Kopf.png" alt="Goethe Kopf" id="goetheHeadImage" />
+    </div>
   </div>
 
-  <div id="minigameSection" class="question-box">
-    <h2>Minispiel: Klick schnell den Goethe-Kopf!</h2>
-    <p>Klicke den Goethe-Kopf so oft wie möglich in 10 Sekunden!</p>
-    <button id="startGameBtn" class="btn">Spiel starten</button>
-    <div id="miniGameTimer" style="font-size:1.2rem; margin-top:10px;">Zeit: 10</div>
-    <div id="miniGameScore" style="font-size:1.2rem; margin-top:5px;">Punkte: 0</div>
-    <div id="miniGameResult"></div>
+  <div class="question-box" id="scoreBox">
+    <h2>📊 Deine Punktzahl</h2>
+    <table>
+      <tr><td>Quiz:</td><td id="quizScoreCell">0</td></tr>
+      <tr><td>Goethe-Kopf-Spiel:</td><td id="kopfScoreCell">0</td></tr>
+      <tr><td>Gesamt:</td><td id="totalScoreCell">0</td></tr>
+    </table>
+    <button class="btn" id="resetPointsBtn" style="background-color: #e63946;">Punkte zurücksetzen</button>
   </div>
 
-<script>
-  // --- Goethe Kopf versteckspiel ---
-  const goetheHead = document.getElementById("goetheHead");
-  const foundCountEl = document.getElementById("foundCount");
-  let foundCount = 0;
+  <div class="question-box" id="leaderboardSection">
+    <h2>🏆 Bestenliste</h2>
+    <ul id="leaderboardList">
+      <li>Lade...</li>
+    </ul>
+  </div>
 
-  function placeGoetheHeadRandom() {
-    const padding = 10;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const iw = goetheHead.offsetWidth;
-    const ih = goetheHead.offsetHeight;
-    const maxX = vw - iw - padding;
-    const maxY = vh - ih - padding;
-    const randX = Math.floor(Math.random() * maxX) + padding;
-    const randY = Math.floor(Math.random() * maxY) + padding;
-    goetheHead.style.left = randX + "px";
-    goetheHead.style.top = randY + "px";
-  }
+  <script>
+    const questions = [
+      { question: "Wie lautet Goethes Vorname?", answers: ["Johann Wolfgang", "Friedrich", "Ludwig", "Heinrich"], correct: 0 },
+      { question: "Welches Werk stammt von Goethe?", answers: ["Faust", "Die Räuber", "Kabale und Liebe", "Der zerbrochne Krug"], correct: 0 },
+      { question: "In welcher Stadt wurde Goethe geboren?", answers: ["Frankfurt am Main", "Weimar", "Leipzig", "Berlin"], correct: 0 },
+      { question: "Welcher Beruf war Goethe NICHT?", answers: ["Bäcker", "Dichter", "Naturforscher", "Minister"], correct: 0 }
+    ];
 
-  goetheHead.onerror = () => {
-    goetheHead.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Goethe_%28Stieler_1828%29.jpg/240px-Goethe_%28Stieler_1828%29.jpg";
-  };
+    let current = 0;
+    let selected = null;
+    let userAnswers = [];
 
-  goetheHead.onclick = () => {
-    foundCount++;
-    foundCountEl.textContent = `Goethe-Kopf gefunden: ${foundCount} mal`;
-    placeGoetheHeadRandom();
-    goetheHead.style.transform = "scale(1.3)";
-    setTimeout(() => {
-      goetheHead.style.transform = "scale(1)";
-    }, 300);
-  };
+    const questionEl = document.getElementById("question");
+    const answersEl = document.getElementById("answers");
+    const resultEl = document.getElementById("result");
+    const checkBtn = document.getElementById("checkAnswerBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const submitQuizBtn = document.getElementById("submitQuizBtn");
 
-  placeGoetheHeadRandom();
-  window.addEventListener("resize", placeGoetheHeadRandom);
+    const quizScoreCell = document.getElementById("quizScoreCell");
+    const kopfScoreCell = document.getElementById("kopfScoreCell");
+    const totalScoreCell = document.getElementById("totalScoreCell");
+    const leaderboardList = document.getElementById("leaderboardList");
+    const timeLeftEl = document.getElementById("timeLeft");
+    const resetPointsBtn = document.getElementById("resetPointsBtn");
 
-  // --- Goethe Quiz ---
-  const questions = [
-    {
-      question: "Wie lautet Goethes Vorname?",
-      answers: ["Johann Wolfgang", "Friedrich", "Ludwig", "Heinrich"],
-      correct: 0
-    },
-    {
-      question: "Welches Werk stammt von Goethe?",
-      answers: ["Faust", "Die Räuber", "Kabale und Liebe", "Der zerbrochne Krug"],
-      correct: 0
-    },
-    {
-      question: "In welcher Stadt wurde Goethe geboren?",
-      answers: ["Frankfurt am Main", "Weimar", "Leipzig", "Berlin"],
-      correct: 0
-    },
-    {
-      question: "Welcher Beruf war Goethe NICHT?",
-      answers: ["Bäcker", "Dichter", "Naturforscher", "Minister"],
-      correct: 0
+    let storedName = localStorage.getItem("goetheUserName");
+
+    // Timer und Punkte-Tracking nur innerhalb der Spielzeit
+    const GAME_DURATION = 60; // Sekunde
+    let timeLeft = GAME_DURATION;
+    let gameActive = false;
+
+    // Punkte in dieser Spielrunde
+    let quizScore = 0;
+    let kopfScore = 0;
+
+    // Initial gespeicherte Punkte (z.B. zum Anzeigen)
+    let savedQuizScore = Number(localStorage.getItem("goetheQuizScore") || 0);
+    let savedKopfScore = Number(localStorage.getItem("goetheKopfScore") || 0);
+
+    // === Quiz Funktionen ===
+    function loadQuestion() {
+      if(current >= questions.length) return finishQuiz();
+      const q = questions[current];
+      questionEl.textContent = q.question;
+      answersEl.innerHTML = "";
+      resultEl.textContent = "";
+      checkBtn.style.display = "inline-block";
+      nextBtn.style.display = "none";
+      checkBtn.disabled = false;
+      nextBtn.disabled = true;
+      submitQuizBtn.disabled = false;
+      selected = null;
+      q.answers.forEach((ans, i) => {
+        const btn = document.createElement("button");
+        btn.textContent = ans;
+        btn.className = "btn";
+        btn.onclick = () => {
+          if(!gameActive) return;
+          selected = i;
+          Array.from(answersEl.children).forEach(c => c.style.backgroundColor = "");
+          btn.style.backgroundColor = "#d1c4e9";
+        };
+        answersEl.appendChild(btn);
+      });
     }
-  ];
-  let current = 0;
-  let selected = null;
 
-  const questionEl = document.getElementById("question");
-  const answersEl = document.getElementById("answers");
-  const resultEl = document.getElementById("result");
-  const checkBtn = document.getElementById("checkAnswerBtn");
-  const nextBtn = document.getElementById("nextBtn");
+    checkBtn.onclick = () => {
+      if(!gameActive) return alert("Die Zeit ist abgelaufen, das Quiz kann nicht mehr gespielt werden.");
+      if(selected === null) return alert("Bitte wähle eine Antwort!");
+      checkBtn.disabled = true;
+      nextBtn.disabled = false;
+      let correct = (selected === questions[current].correct);
+      resultEl.textContent = correct ? "Richtig!" : `Falsch! Richtig wäre: ${questions[current].answers[questions[current].correct]}`;
+      if(correct) quizScore++;
+      checkBtn.style.display = "none";
+      nextBtn.style.display = "inline-block";
+      updateScores();
+    };
 
-  function loadQuestion() {
-    const q = questions[current];
-    questionEl.textContent = q.question;
-    answersEl.innerHTML = "";
-    resultEl.textContent = "";
-    checkBtn.style.display = "inline-block";
-    nextBtn.style.display = "none";
-    selected = null;
-    q.answers.forEach((ans, i) => {
-      const btn = document.createElement("button");
-      btn.textContent = ans;
-      btn.className = "btn";
-      btn.onclick = () => {
-        Array.from(answersEl.children).forEach(b => b.disabled = false);
-        btn.disabled = true;
-        selected = i;
-      };
-      answersEl.appendChild(btn);
-    });
-  }
+    nextBtn.onclick = () => {
+      if(!gameActive) return;
+      current++;
+      loadQuestion();
+    };
 
-  checkBtn.onclick = function() {
-    if (selected === null) {
-      resultEl.textContent = "Bitte eine Antwort auswählen.";
-      resultEl.style.color = "red";
-      return;
-    }
-    if (selected === questions[current].correct) {
-      resultEl.textContent = "Richtig!";
-      resultEl.style.color = "green";
-    } else {
-      resultEl.textContent = "Falsch!";
-      resultEl.style.color = "red";
-    }
-    checkBtn.style.display = "none";
-    nextBtn.style.display = "inline-block";
-  };
+    submitQuizBtn.onclick = () => {
+      if(!gameActive) return alert("Die Zeit ist abgelaufen.");
+      if(confirm("Möchtest du das Quiz jetzt abgeben? Die Punkte werden gezählt.")) {
+        finishQuiz();
+      }
+    };
 
-  nextBtn.onclick = function() {
-    current++;
-    if (current >= questions.length) {
+    function finishQuiz() {
+      // Quiz beenden (innerhalb der Spielzeit) - aber hier einfach anzeigen und disable
       questionEl.textContent = "Quiz beendet!";
       answersEl.innerHTML = "";
+      resultEl.textContent = `Du hast ${quizScore} von ${questions.length} richtigen Antworten gegeben.`;
+      checkBtn.disabled = true;
+      nextBtn.disabled = true;
+      submitQuizBtn.disabled = true;
       checkBtn.style.display = "none";
       nextBtn.style.display = "none";
-      resultEl.textContent = "";
-    } else {
-      loadQuestion();
+      submitQuizBtn.style.display = "none";
+      updateScores();
     }
-  };
 
-  loadQuestion();
+    // === Goethe Kopf Spiel ===
+    const goetheImg = document.getElementById("goetheHeadImage");
+    const container = document.getElementById("goetheContainer");
 
-  // --- Glücksrad ---
-  const wheelBtn = document.getElementById("wheelBtn");
-  const wheelResult = document.getElementById("wheelResult");
-  const items = [
-    "Goethes Federkiel",
-    "Original Manuskript",
-    "Brille von Goethe",
-    "Goethes Hut",
-    "Signiertes Buch",
-    "Stein aus Weimar",
-    "Goethes Spazierstock",
-    "Eine geheime Notiz"
-  ];
-  wheelBtn.onclick = function() {
-    wheelBtn.disabled = true;
-    wheelResult.textContent = "Das Rad dreht...";
-    setTimeout(() => {
-      const prize = items[Math.floor(Math.random() * items.length)];
-      wheelResult.textContent = "Du hast gewonnen: " + prize + "!";
-      wheelBtn.disabled = false;
-    }, 1500);
-  };
+    function moveGoetheRandom() {
+      const cWidth = container.clientWidth;
+      const cHeight = container.clientHeight;
+      const imgWidth = goetheImg.clientWidth;
+      const imgHeight = goetheImg.clientHeight;
 
-  // --- Minispiel ---
-  const startGameBtn = document.getElementById("startGameBtn");
-  const miniGameTimer = document.getElementById("miniGameTimer");
-  const miniGameScore = document.getElementById("miniGameScore");
-  const miniGameResult = document.getElementById("miniGameResult");
-  let gameActive = false;
-  let score = 0;
-  let timer = 10;
-  let interval = null;
+      const maxX = cWidth - imgWidth;
+      const maxY = cHeight - imgHeight;
 
-  function resetMiniGame() {
-    gameActive = false;
-    score = 0;
-    timer = 10;
-    miniGameScore.textContent = "Punkte: 0";
-    miniGameTimer.textContent = "Zeit: 10";
-    miniGameResult.textContent = "";
-    goetheHead.style.pointerEvents = "";
-  }
+      const randomX = Math.random() * maxX;
+      const randomY = Math.random() * maxY;
 
-  startGameBtn.onclick = function() {
-    resetMiniGame();
-    gameActive = true;
-    goetheHead.style.pointerEvents = "auto";
-    miniGameResult.textContent = "";
-    interval = setInterval(() => {
-      timer--;
-      miniGameTimer.textContent = "Zeit: " + timer;
-      if (timer <= 0) {
-        clearInterval(interval);
-        gameActive = false;
-        miniGameResult.textContent = "Endstand: " + score + " Punkte!";
-        goetheHead.style.pointerEvents = "none";
+      goetheImg.style.left = randomX + "px";
+      goetheImg.style.top = randomY + "px";
+    }
+
+    let kopfTimerId;
+    function startGoetheTimer() {
+      moveGoetheRandom();
+      clearTimeout(kopfTimerId);
+      kopfTimerId = setTimeout(() => {
+        if(gameActive) {
+          moveGoetheRandom();
+          startGoetheTimer();
+        }
+      }, 5000); // alle 5 Sekunden Position wechseln
+    }
+
+    goetheImg.onclick = () => {
+      if(!gameActive) return;
+      kopfScore++;
+      updateScores();
+      // Kopf springt sofort neu weg bei Klick
+      moveGoetheRandom();
+      clearTimeout(kopfTimerId);
+      startGoetheTimer();
+    };
+
+    // === Timer für das ganze Spiel ===
+    let gameTimerId;
+
+    function updateScores() {
+      quizScoreCell.textContent = savedQuizScore + quizScore;
+      kopfScoreCell.textContent = savedKopfScore + kopfScore;
+      totalScoreCell.textContent = (savedQuizScore + quizScore) + (savedKopfScore + kopfScore);
+    }
+
+    function startGameTimer() {
+      timeLeft = GAME_DURATION;
+      gameActive = true;
+      updateTimerDisplay();
+      gameTimerId = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+        if(timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      timeLeftEl.textContent = timeLeft;
+    }
+
+    function endGame() {
+      gameActive = false;
+      clearInterval(gameTimerId);
+      clearTimeout(kopfTimerId);
+      finishQuiz();
+      saveScores();
+      alert("Zeit abgelaufen! Das Spiel ist beendet.");
+    }
+
+    function saveScores() {
+      savedQuizScore += quizScore;
+      savedKopfScore += kopfScore;
+      localStorage.setItem("goetheQuizScore", savedQuizScore);
+      localStorage.setItem("goetheKopfScore", savedKopfScore);
+      updateScores();
+      if(storedName) syncScoreToDB(storedName, savedQuizScore, savedKopfScore);
+      // Reset aktuelle Runde Punkte
+      quizScore = 0;
+      kopfScore = 0;
+    }
+
+    resetPointsBtn.onclick = () => {
+      if(confirm("Willst du wirklich alle Punkte zurücksetzen?")) {
+        savedQuizScore = 0;
+        savedKopfScore = 0;
+        localStorage.setItem("goetheQuizScore", savedQuizScore);
+        localStorage.setItem("goetheKopfScore", savedKopfScore);
+        quizScore = 0;
+        kopfScore = 0;
+        current = 0;
+        loadQuestion();
+        updateScores();
+        if(storedName) syncScoreToDB(storedName, savedQuizScore, savedKopfScore);
       }
-    }, 1000);
-  };
+    };
 
-  goetheHead.addEventListener("click", function(e) {
-    if (gameActive) {
-      score++;
-      miniGameScore.textContent = "Punkte: " + score;
+    // === Name abfragen falls noch nicht gesetzt ===
+    async function askForName() {
+      let name = storedName;
+      while(!name || name.trim().length < 2) {
+        name = prompt("Wie heißt du? Bitte mindestens 2 Zeichen eingeben:");
+        if(name === null) alert("Du musst einen Namen eingeben, um zu spielen.");
+      }
+      name = name.trim();
+      localStorage.setItem("goetheUserName", name);
+      storedName = name;
     }
-  });
 
-  resetMiniGame();
-</script>
+    (async () => {
+      if(!storedName) await askForName();
+      quizScoreCell.textContent = savedQuizScore;
+      kopfScoreCell.textContent = savedKopfScore;
+      totalScoreCell.textContent = savedQuizScore + savedKopfScore;
+      loadQuestion();
+      startGameTimer();
+      startGoetheTimer();
+      updateLeaderboard();
+    })();
+
+    async function syncScoreToDB(name, quizScoreDB, kopfScoreDB) {
+      await db.ref("scores/" + name).set({ quizScore: quizScoreDB, kopfScore: kopfScoreDB });
+      updateLeaderboard();
+    }
+
+    async function updateLeaderboard() {
+      const snapshot = await db.ref("scores").once("value");
+      const scores = snapshot.val();
+      if(!scores) {
+        leaderboardList.innerHTML = "<li>Keine Einträge vorhanden.</li>";
+        return;
+      }
+      const entries = Object.entries(scores);
+      entries.sort((a,b) => ((b[1].quizScore||0)+(b[1].kopfScore||0)) - ((a[1].quizScore||0)+(a[1].kopfScore||0)));
+
+      leaderboardList.innerHTML = "";
+      entries.forEach(([name, score], i) => {
+        const li = document.createElement("li");
+        li.textContent = `${i+1}. ${name}: Quiz ${score.quizScore||0} + Kopf ${score.kopfScore||0} = ${(score.quizScore||0)+(score.kopfScore||0)} Punkte`;
+        if(name === storedName) {
+          li.classList.add("current");
+        }
+        leaderboardList.appendChild(li);
+      });
+    }
+  </script>
 </body>
 </html>
